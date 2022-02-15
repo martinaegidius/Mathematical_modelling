@@ -134,33 +134,35 @@ class OpticalFlow():
             lengths[i] = np.linalg.norm(self.testOutput[i][:])
             #print(lengths[i])
         print("mean is " + str(np.mean(lengths)))
-        #gross outlier-removal
+        #gross outlier-removal (floor outliers to mean value)
         tolerance = 3*np.mean(lengths)
         for i in range(len(lengths)):
             if(lengths[i]>=tolerance):
-                print("entered if")
+                #print("entered if")
                 lengths[i] = np.mean(lengths)
         upperLimit = (max(lengths))
         
         #create colorbar element which forces normalization to range of lengths
-        norm = matplotlib.colors.Normalize()
+        #norm = matplotlib.colors.Normalize()
+        norm = matplotlib.colors.Normalize(vmin=0,vmax=upperLimit)
         norm.autoscale(lengths)
-        cm = matplotlib.cm.hsv
-        sm = matplotlib.cm.ScalarMappable(cmap=cm,norm=norm)
-        sm.set_array([])
+        #cm = matplotlib.cm.hsv
+        #sm = matplotlib.cm.ScalarMappable(cmap=cm,norm=norm)
+        #sm.set_array([])
        
        #plot all images with colorbar. 
-        numImages = 20
+        numImages = 32
+        
         for i in range(numImages): #imagewise 
             fig = plt.imshow(self.grayImages[i,:,:],cmap='gray')
-            plt.quiver(p[0], p[1], self.testOutput[i][0], self.testOutput[i][1], np.linalg.norm(self.testOutput[i][:]),cmap='hsv') #arguments: startpoint(x,y),vector(x,y),"measurement" for colormap, create arrow-colors
-            plt.colorbar(sm)
-            plt.clim(0,upperLimit) #max should be max of array after outliers rmvd
+            plt.quiver(p[0], p[1], self.testOutput[i][0], self.testOutput[i][1], lengths[i],cmap='hsv',norm=norm)#np.linalg.norm(self.testOutput[i][:]),cmap='hsv',norm=norm) #arguments: startpoint(x,y),vector(x,y),"measurement" for colormap, create arrow-colors
+            plt.colorbar()
+           #plt.clim(0,upperLimit) #max should be max of array after outliers rmvd
             plt.xlim([0,250]) #forces constant axes
             plt.ylim([250,0]) #forces constant axes (reversed) 
             plt.show()
         #test if last frame looks proper
-        print("last arrow should have color corresponding to " +str(np.linalg.norm(self.testOutput[numImages][:])))
+        print("last arrow should have color corresponding to " +str(lengths[i]))
         print("last arrow should have direction x: "+str(self.testOutput[numImages][0])+" and y: "+str(self.testOutput[numImages][1]))
         print("Something seems to be off with arrow-colors.")
 
