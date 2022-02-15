@@ -113,20 +113,20 @@ class OpticalFlow():
             
             self.testOutput = testOutput
         
-    def quiver_plot(self,p):
+    def quiver_plot(self,p= np.array([10,10])):
         ### function which takes as input an array which defines the 
         ### coordinates for pixels for which flow-lines are requested 
         ### in format (x,y). 
         ### the pixel-array is to be matched with corresponding values stored in self.testOutput in some sort of sensible way.
         
-        p = np.array([[10,10],[20,20]]) #pairwise array of pixels requested analyzed
+        p = np.array([10,10]) #pairwise array of pixels requested analyzed
         
         
         ##step for making proper normalized colorbar
         #part 1 remove outliers
         
         completeData = np.zeros((63,len(p))) #create storematrix for x y vals
-        for i in range(p):
+        for i in range(len(p)):
             completeData[:,i] = np.linalg.norm(self.testOutput[i][:])
         
         lengths = np.zeros((63))
@@ -140,7 +140,7 @@ class OpticalFlow():
             if(lengths[i]>=tolerance):
                 print("entered if")
                 lengths[i] = np.mean(lengths)
-        print(max(lengths))
+        upperLimit = (max(lengths))
         
         #create colorbar element which forces normalization to range of lengths
         norm = matplotlib.colors.Normalize()
@@ -150,18 +150,19 @@ class OpticalFlow():
         sm.set_array([])
        
        #plot all images with colorbar. 
-        for i in range(63): #imagewise 
+        numImages = 20
+        for i in range(numImages): #imagewise 
             fig = plt.imshow(self.grayImages[i,:,:],cmap='gray')
-            plt.quiver(p[:,0], p[:,1], self.testOutput[i][0:], self.testOutput[i][1:], np.linalg.norm(self.testOutput[i][:]),cmap='hsv') #arguments: startpoint(x,y),vector(x,y),"measurement" for colormap, create arrow-colors
+            plt.quiver(p[0], p[1], self.testOutput[i][0], self.testOutput[i][1], np.linalg.norm(self.testOutput[i][:]),cmap='hsv') #arguments: startpoint(x,y),vector(x,y),"measurement" for colormap, create arrow-colors
             plt.colorbar(sm)
-            #plt.clim(0,20)
+            plt.clim(0,upperLimit) #max should be max of array after outliers rmvd
             plt.xlim([0,250]) #forces constant axes
-            plt.ylim([250,0]) #forces constant axes
+            plt.ylim([250,0]) #forces constant axes (reversed) 
             plt.show()
         #test if last frame looks proper
-        print("last arrow should have color corresponding to " +str(np.linalg.norm(self.testOutput[-1][:])))
-        print("last arrow should have direction x: "+str(self.testOutput[-1][0])+" and y: "+str(self.testOutput[-1][1]))
-
+        print("last arrow should have color corresponding to " +str(np.linalg.norm(self.testOutput[numImages][:])))
+        print("last arrow should have direction x: "+str(self.testOutput[numImages][0])+" and y: "+str(self.testOutput[numImages][1]))
+        print("Something seems to be off with arrow-colors.")
 
 
 OpticalFlow()
