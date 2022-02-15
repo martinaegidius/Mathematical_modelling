@@ -113,17 +113,22 @@ class OpticalFlow():
             
             self.testOutput = testOutput
         
-    def quiver_plot(self,p=np.array([10,10])):
+    def quiver_plot(self,p):
         ### function which takes as input an array which defines the 
         ### coordinates for pixels for which flow-lines are requested 
         ### in format (x,y). 
         ### the pixel-array is to be matched with corresponding values stored in self.testOutput in some sort of sensible way.
         
-        p = np.array([[10,10],[20,20]]) #pixel investigated in this specific case
+        p = np.array([[10,10],[20,20]]) #pairwise array of pixels requested analyzed
         
         
         ##step for making proper normalized colorbar
         #part 1 remove outliers
+        
+        completeData = np.zeros((63,len(p))) #create storematrix for x y vals
+        for i in range(p):
+            completeData[:,i] = np.linalg.norm(self.testOutput[i][:])
+        
         lengths = np.zeros((63))
         for i in range(63):
             lengths[i] = np.linalg.norm(self.testOutput[i][:])
