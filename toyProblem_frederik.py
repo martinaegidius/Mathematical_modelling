@@ -158,7 +158,7 @@ class OpticalFlow():
         norm.autoscale(lengths)
         
        #plot all images with colorbar. 
-        numImages = 2 #last frame has been lost earlier :-(
+        numImages = 62 #last frame has been lost earlier :-(
         
         for i in range(numImages): #imagewise 
             fig = plt.imshow(self.grayImages[i,:,:],cmap='gray') #plot frame of interest
