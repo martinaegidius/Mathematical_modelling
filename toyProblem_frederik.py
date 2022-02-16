@@ -112,60 +112,68 @@ class OpticalFlow():
                 testOutput = np.concatenate((testOutput,np.linalg.lstsq(A,vT,rcond=None)[0:1]))
             
             self.testOutput = testOutput
+            print(self.testOutput)
         
-    def quiver_plot(self,p= np.array([10,10])):
+    def quiver_plot(self):
         ### function which takes as input an array which defines the 
         ### coordinates for pixels for which flow-lines are requested 
         ### in format (x,y). 
         ### the pixel-array is to be matched with corresponding values stored in self.testOutput in some sort of sensible way.
         
-        p = np.array([10,10]) #pairwise array of pixels requested analyzed
         
+        #generating a diagonal pointsample (should come from other function)
+        p = np.linspace(0,256,num = 30).astype(int) #pairwise array of pixels requested analyzed (should come from LUKASBOI)
+        global q 
+        q = np.vstack((p,p)).T
         
+        global dataHolder ##create a matrix for holding all gradients for points. Should be generated from another function
+        #in format [frames x pointvalues (pairwise)]
+        dataHolder = np.zeros((len(self.grayImages),len(q)))
+        print(dataHolder.shape)
+        #concatenate all flow measurements
+        for j in range(len(self.grayImages)-1):
+            for i in range(0,len(q),2):
+                #we are loosing last frame. Should maybe be corrected to len(grayImages)
+                
+                #following should be a oneliner somehow 
+                dataHolder[j][i] = self.testOutput[j][0]
+                dataHolder[j][i+1] = self.testOutput[j][1]
+                #thus this is not completely dynamic, sicing would fix
+                
         ##step for making proper normalized colorbar
-        #part 1 remove outliers
+        #part 1 remove outliers from dataset
+        global lengths 
+        lengths = np.zeros((dataHolder.shape[0],dataHolder.shape[1]//2)) #for storing vector norms, thus only halve # of cols=pointnumber
+        for j in range(len(self.grayImages)-1): #loop over frames 
+            for i in range(0,2*lengths.shape[1]-1,2): #loop over pixel of interest
+                lengths[j][i//2] = np.linalg.norm(dataHolder[j][i:i+2]) ##fill every col of lengths
         
-        completeData = np.zeros((63,len(p))) #create storematrix for x y vals
-        for i in range(len(p)):
-            completeData[:,i] = np.linalg.norm(self.testOutput[i][:])
-        
-        lengths = np.zeros((63))
-        for i in range(63):
-            lengths[i] = np.linalg.norm(self.testOutput[i][:])
-            #print(lengths[i])
-        print("mean is " + str(np.mean(lengths)))
         #gross outlier-removal (floor outliers to mean value)
         tolerance = 3*np.mean(lengths)
-        for i in range(len(lengths)):
-            if(lengths[i]>=tolerance):
-                #print("entered if")
-                lengths[i] = np.mean(lengths)
-        upperLimit = (max(lengths))
+        lengths[lengths>tolerance] = np.mean(lengths) #remember that norms are always positive, thus no abs() needed
+        upperLimit = (np.amax(lengths)) #find maximal value of all pixels through all frames to define top-edge of colorbar
         
         #create colorbar element which forces normalization to range of lengths
-        #norm = matplotlib.colors.Normalize()
         norm = matplotlib.colors.Normalize(vmin=0,vmax=upperLimit)
         norm.autoscale(lengths)
-        #cm = matplotlib.cm.hsv
-        #sm = matplotlib.cm.ScalarMappable(cmap=cm,norm=norm)
-        #sm.set_array([])
-       
+        
        #plot all images with colorbar. 
-        numImages = 32
+        numImages = 2 #last frame has been lost earlier :-(
         
         for i in range(numImages): #imagewise 
-            fig = plt.imshow(self.grayImages[i,:,:],cmap='gray')
-            plt.quiver(p[0], p[1], self.testOutput[i][0], self.testOutput[i][1], lengths[i],cmap='hsv',norm=norm)#np.linalg.norm(self.testOutput[i][:]),cmap='hsv',norm=norm) #arguments: startpoint(x,y),vector(x,y),"measurement" for colormap, create arrow-colors
+            fig = plt.imshow(self.grayImages[i,:,:],cmap='gray') #plot frame of interest
+            for j in range(0,(dataHolder.shape[1]-1),2): #loop over all columns in dataHolder-array for the corresponding frame
+                #print(j) for debugging
+                plt.quiver(q[j,0], q[j,1], dataHolder[i][j], dataHolder[i][j+1], lengths[i,j//2],cmap='hsv',norm=norm)#arguments: startpoint(x,y),vector(x,y),"measurement" for colormap, create arrow-colors
+                
             plt.colorbar()
-           #plt.clim(0,upperLimit) #max should be max of array after outliers rmvd
+            #plt.clim(0,upperLimit) #max should be max of array after outliers rmvd
             plt.xlim([0,250]) #forces constant axes
             plt.ylim([250,0]) #forces constant axes (reversed) 
             plt.show()
-        #test if last frame looks proper
-        print("last arrow should have color corresponding to " +str(lengths[i]))
-        print("last arrow should have direction x: "+str(self.testOutput[numImages][0])+" and y: "+str(self.testOutput[numImages][1]))
-        print("Something seems to be off with arrow-colors.")
-
+        ##test if last frame looks proper
+        print("last arrow should have color corresponding to " +str(lengths[numImages-1]))
+        print("last arrow should have direction x: "+str(self.testOutput[numImages-1][0])+" and y: "+str(self.testOutput[numImages-1][1])) #whoops - only for debugging. 
 
 OpticalFlow()
 
