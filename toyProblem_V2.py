@@ -89,7 +89,7 @@ class OpticalFlow():
             pixelGradX[:,j] = ndi.gaussian_filter1d(self.analPix[:,j],sigma=sigmaChoice)
             pixelGradY[j,:] = ndi.gaussian_filter1d(self.analPix[j,:],sigma=sigmaChoice)
         
-    def LUKASBOI(self,N=3,stride=40):
+    def LUKASBOI(self,N=3,stride=20):
         ''' Does Lukas Kanabe on all images in variable self.grayImages.
 
         Args:
@@ -194,12 +194,15 @@ class OpticalFlow():
                 lengths[j][i] = np.linalg.norm(dataHolder[j,i,:,:]) ##fill every col of lengths
         
         #gross outlier-removal (floor outliers to mean value)
-        tolerance = 3*np.mean(lengths)
-        lengths[lengths>tolerance] = np.mean(lengths) #remember that norms are always positive, thus no abs() needed
-        upperLimit = (np.amax(lengths)) #find maximal value of all pixels through all frames to define top-edge of colorbar
+        #tolerance = 100*np.mean(lengths)
+        #lengths[lengths>tolerance] = np.mean(lengths) #remember that norms are always positive, thus no abs() needed
+        upperLimit = (np.percentile(lengths,95)) #define upper edge of colorbar as 95 percentile of lengths
+        #upperLimit = np.amax(lengths)
+        lowerLimit = np.percentile(lengths,70)
+        lengths[lengths<lowerLimit] = np.NAN
         
         #create colorbar element which forces normalization to range of lengths
-        norm = matplotlib.colors.Normalize(vmin=0,vmax=upperLimit)
+        norm = matplotlib.colors.Normalize(vmin=lowerLimit,vmax=upperLimit,clip=False)
         norm.autoscale(lengths)
         
        #plot all images with colorbar. 
@@ -209,10 +212,10 @@ class OpticalFlow():
             fig = plt.imshow(self.grayImages[i,:,:],cmap='gray') #plot frame of interest
             for j in range(0,dataHolder.shape[1]): #loop over all columns in dataHolder-array for the corresponding frame
                 #print(j) for debugging
-                plt.quiver(q[j,0], q[j,1], dataHolder[i,j,0,:], dataHolder[i,j,1,:], lengths[i,j],cmap='hsv',norm=norm)#arguments: startpoint(x,y),vector(x,y),"measurement" for colormap, create arrow-colors
+                plt.quiver(q[j,0], q[j,1], dataHolder[i,j,0,:], dataHolder[i,j,1,:], lengths[i,j],cmap='jet',norm=norm)#arguments: startpoint(x,y),vector(x,y),"measurement" for colormap, create arrow-colors
                 
             plt.colorbar()
-            #plt.clim(0,upperLimit) #max should be max of array after outliers rmvd
+            plt.clim(lowerLimit,upperLimit) #max should be max of array after outliers rmvd
             plt.xlim([0,250]) #forces constant axes
             plt.ylim([250,0]) #forces constant axes (reversed) 
             plt.show()
