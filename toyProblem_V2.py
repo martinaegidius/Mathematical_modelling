@@ -20,7 +20,8 @@ class OpticalFlow():
        #self.showGradies(self.gaussConvTest)
        #self.CornerPixelGradient()
        self.LUKASBOI()
-       self.quiver_plot()
+       #self.quiver_plot()
+       self.simple_plot()
         
     def prepImages(self):
         path = os.path.dirname(__file__)
@@ -152,6 +153,49 @@ class OpticalFlow():
                     self.mellemstop = np.concatenate((self.mellemstop,self.testOutput))
 
             self.gradiants[imageNumber]=self.mellemstop
+        print(self.gradiants.shape)
+        print(self.gradiants[10,10,:])
+        print(self.coordinates[10])
+
+
+    def simple_plot(self):
+        global xygrads
+        global p
+        xygrads = self.gradiants.squeeze() #remove unecessary 4th dim
+        p = self.coordinates
+        
+        #one image frame
+        '''
+        fig = plt.imshow(self.grayImages[10,:,:],cmap='gray',vmin=0,vmax=1)
+        plt.plot(p[7][0],p[7][1],'o',color='red',markersize=2)
+        plt.plot(np.array([p[7][0],p[7][0]+2*xygrads[10,7,0]]),np.array([p[7][1],p[7][1]+2*xygrads[10,7,1]]),'-',color='red',markersize=15)
+        plt.xlim([p[7][0]-25,p[7][0]+25])
+        plt.ylim([p[7][1]-25,p[7][1]+25])
+        plt.show()
+        '''
+        
+        
+        for i in range(43): #imagewise 
+            fig = plt.imshow(self.grayImages[i,:,:],cmap='gray') #plot frame of interest
+            for j in range(0,xygrads.shape[1]-1):
+                plt.plot(p[j][0],p[j][1],'o',color='red',markersize=2)
+                plt.plot(np.array([p[j][0],p[j][0]+2*xygrads[i,j,0]]),np.array([p[j][1],p[j][1]+2*xygrads[i,j,1]]),'-',color='red',markersize=15)
+            plt.xlim([0,256])
+            plt.ylim([256,0])
+            plt.show()
+            
+        #bemærk punkt (53,103). det er tilsvarende p[7] -> xygrads[:,7,:]. Der bør være stor bevægelse = stor gradient
+        pointOfInterest = np.array(xygrads[:,7,:])
+        mean = np.mean(pointOfInterest)
+        print(str(mean) + "den er meget lille")
+        #sammenlign med punkt [143,43] = p[93], hvor der bør være nærmest ingen bevægelse
+        pointOfInterest = np.array(xygrads[:,93,:])
+        mean = np.mean(pointOfInterest)
+        print(str(mean) + "den er ret stor")
+        
+        
+                
+        
 
 
     def quiver_plot(self):
@@ -212,10 +256,13 @@ class OpticalFlow():
             fig = plt.imshow(self.grayImages[i,:,:],cmap='gray') #plot frame of interest
             for j in range(0,dataHolder.shape[1]): #loop over all columns in dataHolder-array for the corresponding frame
                 #print(j) for debugging
-                plt.quiver(q[j,0], q[j,1], dataHolder[i,j,0,:], dataHolder[i,j,1,:], lengths[i,j],cmap='jet',norm=norm)#arguments: startpoint(x,y),vector(x,y),"measurement" for colormap, create arrow-colors
+                #plt.quiver(q[j,0], q[j,1], dataHolder[i,j,0,:], dataHolder[i,j,1,:], lengths[i,j],cmap='jet',norm=norm)#arguments: startpoint(x,y),vector(x,y),"measurement" for colormap, create arrow-colors
+                plt.plot(q[j,0],q[j,1],'o',color='red',markersize=2)
+                plt.plot(np.array([q[j,0],q[j,1]+2*dataHolder[i,j,1,:]]),np.array([q[j,1],q[j,0]+2*dataHolder[i,j,0,:]]),'-',color = 'red', markersize = 15)
                 
-            plt.colorbar()
-            plt.clim(lowerLimit,upperLimit) #max should be max of array after outliers rmvd
+                
+            #plt.colorbar()
+            #plt.clim(lowerLimit,upperLimit) #max should be max of array after outliers rmvd
             plt.xlim([0,250]) #forces constant axes
             plt.ylim([250,0]) #forces constant axes (reversed) 
             plt.show()
