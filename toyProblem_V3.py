@@ -19,14 +19,14 @@ class OpticalFlow():
        self.gaussConvelution()
        #self.showGradies(self.gaussConvTest)
        #self.CornerPixelGradient()
-       self.LUKASBOI(N=2,stride=10)
+       self.LUKASBOI(N=4,stride=6)#9 is best for rotation, stride 6 and sigma 0.5 is best for "vugning" 
        self.quiver_plot()
        #self.simple_plot()
         
     def prepImages(self):
         path = os.path.dirname(__file__)
-        path = os.path.join(path,'../../toyProblem_F22/')
-        #path = os.path.join(path,'video/frames/')
+        #path = os.path.join(path,'../../toyProblem_F22/')
+        path = os.path.join(path,'video/frames/')
         
         #path = '/Users/frederikgade/Documents/DTU/6. Semester/02526 Mathematical Modeling/Excersize 1/toyProblem_F22/'
         imageList = os.listdir(path)
@@ -120,7 +120,7 @@ class OpticalFlow():
         # global coordinates
         # global gradiants
         
-        sigmaChoice = 1.8
+        sigmaChoice = 0.75
         coordinates = []
         for i in range(minX,maxX,stride):
             for j in range (minY,maxY,stride):
@@ -213,8 +213,8 @@ class OpticalFlow():
                 lengths[i][j] = abs(xygrads[i,j,0])+abs(xygrads[i,j,1]) # calculate vector norm of each x,y-gradient
         
         #only interested in very small percentage of movement for tracking
-        upperLimit = (np.percentile(lengths,97)) #define upper edge of colorbar as 95 percentile of lengths
-        lowerLimit = np.percentile(lengths,90)
+        upperLimit = (np.percentile(lengths,98)) #define upper edge of colorbar as 95 percentile of lengths
+        lowerLimit = np.percentile(lengths,96)
         
         #create colorbar element which forces normalization to range of lengths
         norm = matplotlib.colors.Normalize(vmin=lowerLimit,vmax=upperLimit,clip=False)

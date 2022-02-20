@@ -24,7 +24,7 @@ def getFrame(sec):
     return hasFrames
 
 sec = 0
-frameRate = 0.1 #//it will capture image in each 0.1 second
+frameRate = 0.05 #//it will capture image in each 0.1 second
 count = 1
 if count==1:
     countstr="01"
